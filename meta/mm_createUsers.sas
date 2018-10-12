@@ -29,8 +29,8 @@
 
 **/
 
-%macro mm_createUsers(inputds,groupname,outputds=created_Users,firstname=firstname,lastname=lastname,title=title,
-						pascode=pascode,email=email,dodid=gigid);
+%macro mm_createUsers(inputds,groupname,outputds=work.created_Users,firstname=firstname,
+                        lastname=lastname,title=title,pascode=pascode,email=email,dodid=gigid);
 	data &outputds.;
         length personuri dodIduri locationuri emailuri loginuri login2uri defaultAuthUri webAuthUri $256;
 		length location emailtype $8;

@@ -27,8 +27,8 @@
 
 **/
 
-%macro mm_updateUsers(inputds,outputds=updated_Users,firstname=firstname,lastname=lastname,title=title,
-						pascode=pascode,email=email,dodid=gigid);
+%macro mm_updateUsers(inputds,outputds=work.updated_Users,firstname=firstname,lastname=lastname,
+                        title=title,pascode=pascode,email=email,dodid=gigid);
 	data &outputds.;
 	    length personuri dodIduri locationuri emailuri $256;
 		length _location _locationNew emailtype $8;

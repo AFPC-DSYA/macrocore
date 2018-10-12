@@ -1,11 +1,13 @@
-# Macro Core
+# Macro Core - AFPC/DSYA
 
-Much quality.  Many standards.  The **Macro Core** library exists to save time
-and development effort!  Herein ye shall find a veritable host of production
+This is a fork of Boemska/macrocore. Thanks to Boemska for a great macro library! 
+
+Below is an edited version of the readme on Boemska/macrocore at the time of forking.
+
+This library exists to save time and development effort! This repository contains many 
 quality SAS macros.  These are a mix of tools, utilities, functions and code
 generators that are useful in the context of Application Development on the SAS
-platform.  [Contributions](https://github.com/Boemska/macrocore/blob/master/CONTRIBUTING.md)
-are welcomed.
+platform.  .
 
 # Components
 
@@ -35,7 +37,7 @@ options insert=(sasautos="/your/path/macrocore/base");
 options insert=(sasautos="/your/path/macrocore/meta");
 ```
 
-The above can be done directly in your sas program, via an autoexec, or an initialisation program.
+The above can be done directly in your sas program, via an autoexec, or an initialization program.
 
 # Standards
 
@@ -58,7 +60,7 @@ The above can be done directly in your sas program, via an autoexec, or an initi
  - no trailing white space
  - no trailing empty lines
 
-## Header Properties
+## Header Properties (no documentation for this fork)
 The **Macro Core** documentation is created using [doxygen](http://www.stack.nl/~dimitri/doxygen/).  A full list of attributes can be found [here](http://www.stack.nl/~dimitri/doxygen/manual/commands.html) but the following are most relevant:
 
  - file.  This needs to be present in order to be recognised by doxygen.
@@ -75,7 +77,7 @@ All macros must be commented in the doxygen format, to enable the [online docume
 ## Coding Standards
 
 *  Indentation = 2 spaces.  No tabs!
-*  Macro variables should not have the trailing dot (`&var` not `&var.`) unless necessary to prevent incorrect resolution
+*  ~~Macro variables should not have the trailing dot (`&var` not `&var.`) unless necessary to prevent incorrect resolution~~
 *  The closing `%mend;` should not contain the macro name.
 *  All macros should be defined with brackets, even if no variables are needed - ie `%macro x();` not `%macro x;`
 *  Mandatory parameters should be positional, all optional parameters should be keyword (var=) style.
