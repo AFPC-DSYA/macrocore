@@ -86,4 +86,4 @@ All macros must be commented in the doxygen format, to enable the [online docume
 
 # General Notes
 
-* All macros should be compatible with SAS versions from support level B and above (so currently 9.2 and later).  If an earlier version is not supported, then the macro should say as such in the header documentation, and exit gracefully (eg `%if %sysevalf(&sysver<9.3) %then %return`).
+* All macros work with SAS 9.4 and later. 
