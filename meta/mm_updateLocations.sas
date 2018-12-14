@@ -1,8 +1,9 @@
 /**
   @file: mm_updateLocations.sas
-  @brief: updates information of locations (PASCODES) in metadata
-  @details: given a dataset of valid pascodes, updates location
-            objects in metadata 
+  @brief: adds location objects and updates information of locations 
+            objects in metadata
+  @details: given a dataset of valid pascodes, adds location objects and
+            updates existing location objects in metadata 
 
   @param inputds: name of input dataset containing valid pascodes
     @required columns: pascode
@@ -26,6 +27,7 @@
         length locationuri $256;
         length _location _locationNew _locArea $8;
         length _locType _locUsage $20;
+        call missing(locationuri,_location,_locationNew,_locArea,_locType,_locUsage);
         set &inputds.;
         /* pascode must be 8 alphanumeric only */
         if not prxmatch('/^\w{8}$/',strip(&pascode.)) then do;
@@ -33,7 +35,7 @@
             put 'ERROR: PASCODE: ' &pascode. ' is invalid. Not adding or updating this PASCODE.';
             delete;                
         end;
-        /* associate pascode to person (create new pascode if no pascode in system) */
+        /* create new pascode if no pascode in system, else update pascode in system */
         locationuri="omsobj:Location?@Name='"||strip(&pascode.)||"'";
         locGetFlag=metadata_getattr(locationuri,"Name",_location);
         if locGetFlag < 0 then do;
@@ -43,7 +45,7 @@
             locUsageFlag=metadata_setattr(locationuri,"UsageVersion","1000000.0");
             locAreaFlag=metadata_setattr(locationuri,"Area",strip(&pascode.));
         end;
-        else if (locGetFlag = 0 and _location=strip(&pascode.));
+        else if (locGetFlag = 0 and _location=strip(&pascode.)) then do;
             *location already exists, update location information;
             locSetFlag=locGetFlag;
             locTypeSetFlag=metadata_getattr(locationuri,"LocationType",_locType);

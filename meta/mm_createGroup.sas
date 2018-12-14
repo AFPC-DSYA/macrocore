@@ -24,6 +24,7 @@
 %macro mm_createGroup(groupname, displayname, description, outputds=_null_);
 data &outputds.;
     length groupuri $256;
+    call missing(groupuri);
     newGroupFlag=metadata_newobj("IdentityGroup",groupuri,"&groupname.");
     publicFlag=metadata_setattr(groupuri,"PublicType","UserGroup");
     usageFlag=metadata_setattr(groupuri,"UsageVersion","1000000.0");

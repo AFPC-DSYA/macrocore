@@ -25,17 +25,21 @@
 %macro mm_deleteUsers(inputds,outputds=_null_,firstname=firstname,lastname=lastname,dodid=gigid);
     data &outputds.;
         length personuri groupuri emailuri locationuri $256;
-        length name_space $60.;
+        length name_space _personName $60.;
+        call missing(personuri,groupuri,emailuri,locationuri,_personName);
         set &inputds.;
         where &dodid. ne "&sysuserid.";
         name_space = strip(strip(&lastname.)||' '||strip(&firstname.));
         /*find and delete users by userid/dodID*/
         personuri = "omsobj:Person?Person[Logins/Login[@UserID='"||strip(&dodid.)||"']]";
         /* remove location associations without deleting objects */
-        k = 1;
-        do while (metadata_getnasn(personuri,"Locations",k,locationuri) > 0);
-            locDelFlag=metadata_setassn(personuri,"Locations","Remove",locationuri);
-            k+1;
+        getPersonFlag = metadata_getattr(personuri,"Name",_personName);
+        if getPersonFlag = 0 then do;
+            k = 1;
+            do while (metadata_getnasn(personuri,"Locations",k,locationuri) > 0);
+                locDelFlag=metadata_setassn(personuri,"Locations","Remove",locationuri);
+                k+1;
+            end;
         end;
         /* delete user */
         personDelFlag=metadata_delobj(personuri);

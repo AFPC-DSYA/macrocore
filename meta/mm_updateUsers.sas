@@ -30,12 +30,14 @@
 %macro mm_updateUsers(inputds,outputds=work.updated_Users,firstname=firstname,lastname=lastname,
                         title=title,pascode=pascode,email=email,dodid=gigid);
     data &outputds.;
-        length personuri dodIduri locationuri emailuri $256;
-        length _location _locationNew emailtype $8;
-        length name_space _personName _displayName _title _email _emailname _emailtype $60;
+        length personuri dodIduri locationuri emailuri _groupuri _personuri $256;
+        length _location _locationNew emailtype _groupStatus $8;
+        length name_space _personName _displayName _title _email _emailname _emailtype _groupname $60;
         length _userId $11;
         /* set missing values to prevent unnecessary log statements */
-        call missing(personuri,dodIduri,locationuri,emailuri,_location,_locationNew,_personName,_displayName,_title,_email,_emailname,_emailtype,_userId);
+        call missing(personuri,dodIduri,locationuri,emailuri,_location,_locationNew,
+                        _personName,_displayName,_title,_email,_emailname,_emailtype,
+                        _userId,_groupuri,_personuri,_groupname,_groupStatus);
         set &inputds.;
         name_space = strip(strip(&lastname.)||" "||strip(&firstname.));
         if prxmatch('/us\.af\.mil/i',&email.) then emailtype='LIFE';
@@ -74,6 +76,10 @@
         if (_userId = strip(&dodid.) or userIdGetFlag = 0) and personGetFlag = 0 then do;
             * person exists in STARS, can begin updating;
             * begin updating person details;
+            if upcase(_personName) ne strip(&dodid.) then do;
+                nameSetFlag = metadata_setattr(personuri,"Name",strip(&dodid.));
+            end;
+            else nameSetFlag = personGetFlag;
             displayGetFlag = metadata_getattr(personuri,"DisplayName",_displayName);
             if displayGetFlag = 0 and upcase(_displayName) ne upcase(strip(name_space)) then do;
                 displaySetFlag = metadata_setattr(personuri,"DisplayName",name_space);
@@ -102,9 +108,11 @@
                     else do;
                         *location already created, just set association for person;
                         locationSetFlag=metadata_setassn(personuri,"Locations","Append",locationuri);
-                        /* disable user's account */
-                        %mm_removeUserFromAllGroups(&dodid.);
-                        %mm_addUserToGroup(Disabled Accounts,&dodid.);
+                        /* disable user's account if we change a pascode */
+                        if strip(&dodid.) ne "&sysuserid." then do;
+                            %mm_removeUserFromAllGroups(dodId=&dodid.);
+                            %mm_addUserToGroup(Disabled Accounts,dodId=&dodid.);
+                        end;
                     end;
                 end;
                 else locationSetFlag = locationGetFlag;
@@ -121,9 +129,11 @@
                 else do;
                     *location already created, just set association for person;
                     locationSetFlag=metadata_setassn(personuri,"Locations","Append",locationuri);
-                    /* disable user's account */
-                    %mm_removeUserFromAllGroups(&dodid.);
-                    %mm_addUserToGroup(Disabled Accounts,&dodid.);
+                    /* disable user's account if we change a pascode*/
+                    if strip(&dodid.) ne "&sysuserid." then do;
+                        %mm_removeUserFromAllGroups(dodId=&dodid.);
+                        %mm_addUserToGroup(Disabled Accounts,dodId=&dodid.);
+                    end;
                 end;
             end;
             *finally, email -
@@ -173,8 +183,8 @@
                 emailUsageFlag = 0;
             end;
             *log status of update;
-            if sum(displaySetFlag,titleSetFlag,locationSetFlag,emailSetFlag,emailTypeSetFlag,
-                    emailNameSetFlag,emailUsageFlag,emailAssignFlag) = 0 then
+            if sum(nameSetFlag, displaySetFlag,titleSetFlag,locationSetFlag,emailSetFlag,emailTypeSetFlag,
+                    emailNameSetFlag,emailUsageFlag) = 0 then
                 put 'NOTE: User: ' &dodid. ' updated successfully.';
             else put 'ERROR: Errors when updating User: ' &dodid.; 
         end;
