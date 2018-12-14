@@ -141,7 +141,7 @@ run;
   %return;
 %end;
 
-%if stptype=1 %then %do;
+%if &stptype=1 %then %do;
   /* type 1 STP - where code is stored on filesystem */
   %if %sysevalf(&sysver lt 9.2) %then %do;
     %put WARNING: Version 9.2 or later required;

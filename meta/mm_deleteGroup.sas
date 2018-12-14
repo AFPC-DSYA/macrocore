@@ -2,7 +2,7 @@
   @file: mm_deleteGroup.sas
   @brief: Deletes a metadata group
   @details: deletes metadata group identified by given name
-			 and outputs flags in output dataset
+             and outputs flags in output dataset
 
   @param groupname: string for name of group in metadata
   @param outputds=: name of output dataset containing flags
@@ -11,11 +11,11 @@
 
   @version: SAS 9.4
   @author: Caleb Ziegler
-  @copyright: GNU GENERAL PUBLIC LICENSE v3
+  @copyright:  None - Public domain
 
   @example:
-	%mm_deleteGroup(TestGroup1);
-	%mm_deleteGroup(TestGroup1,outputds=deletedGroup);
+    %mm_deleteGroup(TestGroup1);
+    %mm_deleteGroup(TestGroup1,outputds=deletedGroup);
 
 **/
 
@@ -23,8 +23,8 @@
 /* deletes group */
 %macro mm_deleteGroup(groupname,outputds=_null_);
 data &outputds.;
-	delGroupFlag=metadata_delobj("omsobj:IdentityGroup?@Name='&groupname.'");
-	if delGroupFlag=0 then put 'NOTE: Group ' "&groupname." ' successfully deleted.';
-	else put 'ERROR: Group ' "&groupname." ' not deleted due to errors.';
+    delGroupFlag=metadata_delobj("omsobj:IdentityGroup?@Name='&groupname.'");
+    if delGroupFlag=0 then put 'NOTE: Group ' "&groupname." ' successfully deleted.';
+    else put 'ERROR: Group ' "&groupname." ' not deleted due to errors.';
 run;
 %mend;
