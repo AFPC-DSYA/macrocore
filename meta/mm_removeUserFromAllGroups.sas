@@ -36,6 +36,7 @@
     do while (metadata_getnasn(_personuri,"IdentityGroups",_k,_groupuri) > 0);
         getGroupNameFlag=metadata_getattr(_groupuri,"Name",_groupname);
         removeGroupFlag=metadata_setassn(_personuri,"IdentityGroups","Remove",_groupuri);
+        output;
 /*        if removeGroupFlag=0 then put 'NOTE: User: ' strip(&dodId.) ' removed from Group: ' strip(_groupname);*/
 /*        else if removeGroupFlag=-3 then put 'ERROR: User: ' strip(&dodId.) ' not found. Not removing user from Group: ' strip(_groupname); */
 /*        else if removeGroupFlag=-6 then put 'ERROR: Group: ' strip(_groupname) ' not found. Not removing User: ' strip(&dodId.) ' from group.'; */

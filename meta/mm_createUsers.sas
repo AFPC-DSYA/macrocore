@@ -131,6 +131,7 @@
                     eTypeFlag,eUsageFlag,eAssnFlag,loginFlag,domainFlag,userIdFlag,lPublicFlag,changeFlag,
                     login2Flag,domain2Flag,userId2Flag,lPublic2Flag,change2Flag) = 0 then
                 put 'NOTE: User: ' &dodid. ' with Name: ' name_space ' created successfully';
+            else if locGetFlag < 0 then put 'WARNING: User: ' &dodid. ' created but cannot assign PASCODE for user.';
             else put 'ERROR: User: ' &dodid. ' with Name: ' name_space ' has errors. Check dataset "&outputds." for more information.';
         end;
 

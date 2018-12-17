@@ -15,6 +15,8 @@
   @param pascode=: name of column containing pascode
   @param email=: name of column containing email
   @param dodid=: name of column containing dodId/edipi (10 digit + 1 letter)
+  @param disableAccounts=: boolean (1 for true and 0 for false) indicating whether
+                           to disable accounts that change pascode or not 
 
   @returns outputds: dataset containing flags for update of users
 
@@ -28,7 +30,7 @@
 **/
 
 %macro mm_updateUsers(inputds,outputds=work.updated_Users,firstname=firstname,lastname=lastname,
-                        title=title,pascode=pascode,email=email,dodid=gigid);
+                        title=title,pascode=pascode,email=email,dodid=gigid,disableAccounts=1);
     data &outputds.;
         length personuri dodIduri locationuri emailuri _groupuri _personuri $256;
         length _location _locationNew emailtype _groupStatus $8;
@@ -76,15 +78,18 @@
         if (_userId = strip(&dodid.) or userIdGetFlag = 0) and personGetFlag = 0 then do;
             * person exists in STARS, can begin updating;
             * begin updating person details;
+            * update object name;
             if upcase(_personName) ne strip(&dodid.) then do;
                 nameSetFlag = metadata_setattr(personuri,"Name",strip(&dodid.));
             end;
             else nameSetFlag = personGetFlag;
+            * update display name;
             displayGetFlag = metadata_getattr(personuri,"DisplayName",_displayName);
             if displayGetFlag = 0 and upcase(_displayName) ne upcase(strip(name_space)) then do;
                 displaySetFlag = metadata_setattr(personuri,"DisplayName",name_space);
             end;
             else displaySetFlag = displayGetFlag;
+            * update title;
             titleGetFlag = metadata_getattr(personuri,"Title",_title);
             if titleGetFlag = 0 and upcase(_title) ne upcase(strip(title)) then do;
                 titleSetFlag = metadata_setattr(personuri,"Title",strip(&title.));
@@ -109,9 +114,25 @@
                         *location already created, just set association for person;
                         locationSetFlag=metadata_setassn(personuri,"Locations","Append",locationuri);
                         /* disable user's account if we change a pascode */
-                        if strip(&dodid.) ne "&sysuserid." then do;
-                            %mm_removeUserFromAllGroups(dodId=&dodid.);
-                            %mm_addUserToGroup(Disabled Accounts,dodId=&dodid.);
+                        if strip(&dodid.) ne "&sysuserid." and &disableAccounts. = 1 then do;
+                            /* remove all groups */
+                            _groupStatus = "remove";
+                            _k = 1; 
+                            * removing a group mutates the IdentityGroups association for person,
+                                so only remove group at index 1, but continue until no groups associated;
+                            do while (metadata_getnasn(personuri,"IdentityGroups",1,_groupuri) > 0);
+                                getGroupNameFlag=metadata_getattr(_groupuri,"Name",_groupname);
+                                removeGroupFlag=metadata_setassn(personuri,"IdentityGroups","Remove",_groupuri);
+                                output;
+                                _k = _k + 1;
+                            end;  
+                            /* add disabled group*/
+                            _groupStatus = "add";
+                            _groupname = "Disabled Accounts";
+                            _groupuri = "omsobj:IdentityGroup?@Name='Disabled Accounts'";
+                            addGroupFlag=metadata_setassn(personuri,"IdentityGroups","Append",_groupuri);
+/*                            %mm_removeUserFromAllGroups(dodId=&dodid.);*/
+/*                            %mm_addUserToGroup(Disabled Accounts,dodId=&dodid.);*/
                         end;
                     end;
                 end;
@@ -130,9 +151,25 @@
                     *location already created, just set association for person;
                     locationSetFlag=metadata_setassn(personuri,"Locations","Append",locationuri);
                     /* disable user's account if we change a pascode*/
-                    if strip(&dodid.) ne "&sysuserid." then do;
-                        %mm_removeUserFromAllGroups(dodId=&dodid.);
-                        %mm_addUserToGroup(Disabled Accounts,dodId=&dodid.);
+                    if strip(&dodid.) ne "&sysuserid." and &disableAccounts. = 1 then do;
+                        /* remove all groups */
+                        _groupStatus = "remove";
+                        _k = 1; 
+                        * removing a group mutates the IdentityGroups association for person,
+                            so only remove group at index 1, but continue until no groups associated;
+                        do while (metadata_getnasn(personuri,"IdentityGroups",1,_groupuri) > 0);
+                            getGroupNameFlag=metadata_getattr(_groupuri,"Name",_groupname);
+                            removeGroupFlag=metadata_setassn(personuri,"IdentityGroups","Remove",_groupuri);
+                            output;
+                            _k = _k + 1;
+                        end;  
+                        /* add disabled group*/
+                        _groupStatus = "add";
+                        _groupname = "Disabled Accounts";
+                        _groupuri = "omsobj:IdentityGroup?@Name='Disabled Accounts'";
+                        addGroupFlag=metadata_setassn(personuri,"IdentityGroups","Append",_groupuri);
+/*                        %mm_removeUserFromAllGroups(dodId=&dodid.);*/
+/*                        %mm_addUserToGroup(Disabled Accounts,dodId=&dodid.);*/
                     end;
                 end;
             end;
@@ -186,7 +223,10 @@
             if sum(nameSetFlag, displaySetFlag,titleSetFlag,locationSetFlag,emailSetFlag,emailTypeSetFlag,
                     emailNameSetFlag,emailUsageFlag) = 0 then
                 put 'NOTE: User: ' &dodid. ' updated successfully.';
+            else if locationGetFlag < 0 then put 'WARNING: User: ' &dodid. ' updated but cannot update PASCODE.';
             else put 'ERROR: Errors when updating User: ' &dodid.; 
+            *must output to dataset here since outputs above nested in if statements;
+            output;
         end;
         else do;
             put 'WARNING: User: ' &dodid. ' not found in STARS.';
