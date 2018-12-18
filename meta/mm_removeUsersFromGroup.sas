@@ -23,14 +23,16 @@
 **/
 
 %macro mm_removeUsersFromGroup(groupname,inputds,dodId=gigid,outputds=_null_);
-data &outputds.;
-    length groupuri peopleuri $256;
-    set &inputds.;
-    groupuri = "omsobj:IdentityGroup?@Name='&groupname.'";
-    peopleuri = "omsobj:Person?Person[Logins/Login[@UserID='"||strip(&dodId.)||"']]";
-    removeGroupFlag=metadata_setassn(groupuri,"MemberIdentities","Remove",peopleuri);
-    if removeGroupFlag=0 then put 'NOTE: User: ' &dodId. ' removed from Group ' "&groupname.";
-    else if removeGroupFlag=-3 then put 'WARNING: User: ' &dodid. ' not found.'; 
-    else put 'ERROR: User: ' &dodId. ' not removed from Group ' "&groupname." ' due to errors.';    
-run;
+    data &outputds.;
+        length groupuri peopleuri $256;
+        call missing(groupuri,peopleuri);
+        set &inputds.;
+        groupuri = "omsobj:IdentityGroup?@Name='&groupname.'";
+        peopleuri = "omsobj:Person?Person[Logins/Login[@UserID='"||strip(&dodId.)||"']]";
+        removeGroupFlag=metadata_setassn(groupuri,"MemberIdentities","Remove",peopleuri);
+        if removeGroupFlag=0 then put 'NOTE: User: ' &dodId. ' removed from Group: ' "&groupname.";
+        else if removeGroupFlag=-3 then put 'WARNING: Group: ' "&groupname." ' not found.';
+        else if removeGroupFlag=-6 then put 'WARNING: User: ' &dodid. ' not found.'; 
+        else put 'ERROR: User: ' &dodId. ' not removed from Group: ' "&groupname." ' due to errors.';    
+    run;
 %mend;

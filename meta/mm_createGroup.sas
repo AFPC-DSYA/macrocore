@@ -22,16 +22,22 @@
 **/
 
 %macro mm_createGroup(groupname, displayname, description, outputds=_null_);
-data &outputds.;
-    length groupuri $256;
-    call missing(groupuri);
-    newGroupFlag=metadata_newobj("IdentityGroup",groupuri,"&groupname.");
-    publicFlag=metadata_setattr(groupuri,"PublicType","UserGroup");
-    usageFlag=metadata_setattr(groupuri,"UsageVersion","1000000.0");
-    descFlag=metadata_setattr(groupuri,"Desc","&description.");
-    displayFlag=metadata_setattr(groupuri,"DisplayName","&displayname.");
-    if sum(newGroupFlag,publicFlag,usageFlag,descFlag,displayFlag) = 0 then put 'NOTE: Group ' "&groupname." ' successfully created.';
-    else if newGroupFlag ne 0 then put 'ERROR: Group ' "&groupname." ' not created due to errors.';
-    else put 'ERROR: Group ' "&groupname." ' created but has errors.';
-run;
+    data &outputds.;
+        length groupuri $256;
+        length _groupname $100;
+        call missing(groupuri,_groupname);
+        getGroupFlag=metadata_getattr("omsobj:IdentityGroup?@Name='&groupname.'","Name",_groupname);
+        if getGroupFlag = 0 then do;
+            put 'WARNING: Group: ' "&groupname." ' already exists. Terminating.';
+            delete;
+        end; 
+        newGroupFlag=metadata_newobj("IdentityGroup",groupuri,"&groupname.");
+        publicFlag=metadata_setattr(groupuri,"PublicType","UserGroup");
+        usageFlag=metadata_setattr(groupuri,"UsageVersion","1000000.0");
+        descFlag=metadata_setattr(groupuri,"Desc","&description.");
+        displayFlag=metadata_setattr(groupuri,"DisplayName","&displayname.");
+        if sum(newGroupFlag,publicFlag,usageFlag,descFlag,displayFlag) = 0 then put 'NOTE: Group ' "&groupname." ' successfully created.';
+        else if newGroupFlag ne 0 then put 'ERROR: Group ' "&groupname." ' not created due to errors.';
+        else put 'ERROR: Group ' "&groupname." ' created but has errors.';
+    run;
 %mend;

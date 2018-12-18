@@ -22,9 +22,10 @@
 
 /* deletes group */
 %macro mm_deleteGroup(groupname,outputds=_null_);
-data &outputds.;
-    delGroupFlag=metadata_delobj("omsobj:IdentityGroup?@Name='&groupname.'");
-    if delGroupFlag=0 then put 'NOTE: Group ' "&groupname." ' successfully deleted.';
-    else put 'ERROR: Group ' "&groupname." ' not deleted due to errors.';
-run;
+    data &outputds.;
+        delGroupFlag=metadata_delobj("omsobj:IdentityGroup?@Name='&groupname.'");
+        if delGroupFlag=0 then put 'NOTE: Group ' "&groupname." ' successfully deleted.';
+        else if delGroupFlag=-3 then put 'WARNING: Group ' "&groupname." ' not found.';
+        else put 'ERROR: Group ' "&groupname." ' not deleted due to errors.';
+    run;
 %mend;

@@ -77,7 +77,7 @@
         userIdGetFlag=metadata_getattr(dodIduri,"UserID",_userId);
         if personGetFlag = 0 or userIdGetFlag = 0 then do;
             * person already created, move to next record;
-            put 'WARNING: User: ' &dodid. ' with Name: ' name_space ' already exists in STARS. Not creating user';
+            put 'WARNING: User: ' &dodid. ' with Name: ' name_space ' already exists in STARS. Not creating user.';
             delete;
         end;
         else do;
@@ -138,5 +138,5 @@
         drop personuri locationuri emailuri loginuri login2uri defaultAuthUri webAuthUri;
     run;
 
-    %if &groupname. ne "" %then %mm_addUsersToGroup(&groupname.,&inputds.,dodId=&dodId.);
+    %if not(%nrbquote(&groupname.)=) %then %mm_addUsersToGroup(&groupname.,&inputds.,dodId=&dodId.);
 %mend;

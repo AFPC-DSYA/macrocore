@@ -117,20 +117,22 @@
                         if strip(&dodid.) ne "&sysuserid." and &disableAccounts. = 1 then do;
                             /* remove all groups */
                             _groupStatus = "remove";
-                            _k = 1; 
                             * removing a group mutates the IdentityGroups association for person,
                                 so only remove group at index 1, but continue until no groups associated;
                             do while (metadata_getnasn(personuri,"IdentityGroups",1,_groupuri) > 0);
                                 getGroupNameFlag=metadata_getattr(_groupuri,"Name",_groupname);
                                 removeGroupFlag=metadata_setassn(personuri,"IdentityGroups","Remove",_groupuri);
                                 output;
-                                _k = _k + 1;
+                                if removeGroupFlag = 0 then put 'NOTE: User: ' &dodid. 'removed from Group: ' _groupname;
+                                else put 'ERROR: User: ' &dodid. 'not removed from Group: ' _groupname;
                             end;  
                             /* add disabled group*/
                             _groupStatus = "add";
                             _groupname = "Disabled Accounts";
                             _groupuri = "omsobj:IdentityGroup?@Name='Disabled Accounts'";
                             addGroupFlag=metadata_setassn(personuri,"IdentityGroups","Append",_groupuri);
+                            if addGroupFlag = 0 then put 'NOTE: User: ' &dodid. 'added to Group: ' _groupname;
+                            else put 'ERROR: User: ' &dodid. 'not added to Group: ' _groupname;
 /*                            %mm_removeUserFromAllGroups(dodId=&dodid.);*/
 /*                            %mm_addUserToGroup(Disabled Accounts,dodId=&dodid.);*/
                         end;
@@ -154,20 +156,22 @@
                     if strip(&dodid.) ne "&sysuserid." and &disableAccounts. = 1 then do;
                         /* remove all groups */
                         _groupStatus = "remove";
-                        _k = 1; 
                         * removing a group mutates the IdentityGroups association for person,
                             so only remove group at index 1, but continue until no groups associated;
                         do while (metadata_getnasn(personuri,"IdentityGroups",1,_groupuri) > 0);
                             getGroupNameFlag=metadata_getattr(_groupuri,"Name",_groupname);
                             removeGroupFlag=metadata_setassn(personuri,"IdentityGroups","Remove",_groupuri);
                             output;
-                            _k = _k + 1;
+                            if removeGroupFlag = 0 then put 'NOTE: User: ' &dodid. 'removed from Group: ' _groupname;
+                            else put 'ERROR: User: ' &dodid. 'not removed from Group: ' _groupname;
                         end;  
                         /* add disabled group*/
                         _groupStatus = "add";
                         _groupname = "Disabled Accounts";
                         _groupuri = "omsobj:IdentityGroup?@Name='Disabled Accounts'";
                         addGroupFlag=metadata_setassn(personuri,"IdentityGroups","Append",_groupuri);
+                        if addGroupFlag = 0 then put 'NOTE: User: ' &dodid. 'added to Group: ' _groupname;
+                        else put 'ERROR: User: ' &dodid. 'not added to Group: ' _groupname;
 /*                        %mm_removeUserFromAllGroups(dodId=&dodid.);*/
 /*                        %mm_addUserToGroup(Disabled Accounts,dodId=&dodid.);*/
                     end;

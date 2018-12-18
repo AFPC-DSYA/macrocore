@@ -26,11 +26,14 @@
 %macro mm_addUsersToGroup(groupname,inputds,dodId=gigid,outputds=_null_);
     data &outputds.;
         length groupuri peopleuri $256;
+        call missing(groupuri,peopleuri);
         set &inputds.;
         groupuri = "omsobj:IdentityGroup?@Name='&groupname.'";
         peopleuri = "omsobj:Person?Person[Logins/Login[@UserID='"||strip(&dodId.)||"']]";
         addGroupFlag=metadata_setassn(groupuri,"MemberIdentities","Append",peopleuri);
-        if addGroupFlag=0 then put 'NOTE: User: ' &dodId. ' added to Group ' "&groupname.";
-        else put 'ERROR: User: ' &dodId. ' not added to Group ' "&groupname." ' due to errors.';
+        if addGroupFlag=0 then put 'NOTE: User: ' &dodId. ' added to Group: ' "&groupname.";
+        else if addGroupFlag=-3 then put 'WARNING: Group: ' "&groupname." ' not found.';
+        else if addGroupFlag=-6 then put 'WARNING: User: ' &dodid. ' not found.'; 
+        else put 'ERROR: User: ' &dodId. ' not added to Group: ' "&groupname." ' due to errors.';
     run;
 %mend;
