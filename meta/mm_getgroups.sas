@@ -23,6 +23,7 @@
 %macro mm_getGroups(
      user=
     ,outds=work.mm_getGroups
+    ,includeRoles=NO
     ,mDebug=0
 )/*/STORE SOURCE*/;
 
@@ -42,7 +43,7 @@
       rc=metadata_getattr(groupuri, "Name", groupname);
       rc=metadata_getattr(groupuri, "Desc", groupdesc);
       rc=metadata_getattr(groupuri,"PublicType",group_or_role);
-      if Group_or_Role = 'UserGroup' then output;
+      if Group_or_Role = 'UserGroup' or ("&includeRoles"="YES" and Group_or_Role = 'Role') then output;
       i+1;
     end;
   run;

@@ -19,28 +19,37 @@
     group /* metadata group for which to bring back members */
     ,outds=work.mm_getgroupmembers /* output dataset to contain the results */
     ,id=NO /* set to yes if passing an ID rather than group name */
+    ,contains=NO /* set to yes if name contains rather than equals */
 )/*/STORE SOURCE*/;
+  %local attr condition;
+  %if &id=NO %then %do;
+    %let attr = Name;
+    %if &contains=YES %then %do;
+      %let condition = contains;
+    %end;
+    %else %do;
+      %let condition = eq;
+    %end;
+  %end;
+  %else %do;
+    %let attr = Id;
+    %let condition = eq;
+  %end;
 
   data &outds ;
-    attrib uriGrp uriMem GroupId GroupName Group_or_Role MemberName MemberType
+    attrib uriGrp uriMem uriLogin GroupId GroupName Group_or_Role MemberName MemberType MemberId
                           length=$64
       GroupDesc           length=$256
       rcGrp rcMem rc i j  length=3;
     call missing (of _all_);
-    drop uriGrp uriMem rcGrp rcMem rc i j;
+    drop uriGrp uriMem uriLogin rcGrp rcMem rc i j k;
 
     i=1;
     * Grab the URI for the first Group ;
-    %if &id=NO %then %do;
-      rcGrp=metadata_getnobj("omsobj:IdentityGroup?@Name='&group'",i,uriGrp);
-    %end;
-    %else %do;
-      rcGrp=metadata_getnobj("omsobj:IdentityGroup?@Id='&group'",i,uriGrp);
-    %end;
     * If Group found, enter do loop ;
-    if rcGrp>0 then do;
-      call missing (rcMem,uriMem,GroupId,GroupName,Group_or_Role
-        ,MemberName,MemberType);
+    do while (metadata_getnobj("omsobj:IdentityGroup?@&attr &condition '&group'",i,uriGrp) > 0);
+      call missing (rcMem,uriMem,uriLogin,GroupId,GroupName,Group_or_Role
+        ,MemberName,MemberId,MemberType);
       * get group info ;
       rc = metadata_getattr(uriGrp,"Id",GroupId);
       rc = metadata_getattr(uriGrp,"Name",GroupName);
@@ -48,13 +57,27 @@
       rc = metadata_getattr(uriGrp,"Desc",GroupDesc);
       j=1;
       do while (metadata_getnasn(uriGrp,"MemberIdentities",j,uriMem) > 0);
-        call missing (MemberName,MemberType);
+        call missing (MemberName,MemberType,MemberId,uriLogin);
         rc = metadata_getattr(uriMem,"Name",MemberName);
         rc = metadata_getattr(uriMem,"PublicType",MemberType);
+        if strip(MemberType) = "User" then do;
+          k=1;
+          do while (metadata_getnasn(uriMem,"Logins",k,uriLogin) > 0);
+            k+1;
+            if prxmatch('/^\d{10}[A-Z]{1}$/',strip(MemberId)) then do;
+              continue;
+            end;
+            else do;
+              rc = metadata_getattr(uriLogin,"UserID",MemberId);
+            end;
+          end;
+        end;
         output;
         j+1;
       end;
+      i+1;
     end;
+
   run;
 
 %mend;
