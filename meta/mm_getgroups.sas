@@ -34,7 +34,7 @@
 %&mD.put _local_;
 
 %if %length(&user)=0 %then %do;
-  data &outds (keep=groupuri groupname groupdesc);
+  data &outds (keep=groupuri groupname group_or_role groupdesc);
     length groupuri groupname groupdesc group_or_role $256;
     call missing(of _all_);
     i+1;
@@ -49,7 +49,7 @@
   run;
 %end;
 %else %do;
-  data &outds (keep=groupuri groupname groupdesc);
+  data &outds (keep=groupuri groupname group_or_role groupdesc);
     length uri groupuri groupname groupdesc $256;
     call missing(of _all_);
     rc=metadata_getnobj("omsobj:Person?@Name='&user'",1,uri);
